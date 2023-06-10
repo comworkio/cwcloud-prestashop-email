@@ -14,7 +14,7 @@ for api in "${APIS[@]}"; do
     dir="cwcloudemailplugin"
     rm -rf "${archive}"
     mkdir -p "${dir}"
-    sed "s/CWCLOUD_ENDPOINT_URL/${api}/g" "cwcloud-email-plugin.php.tpl" > "${dir}/cwcloud-email-plugin.php"
+    sed "s/CWCLOUD_ENDPOINT_URL/${api}/g" "cwcloudemailplugin.php.tpl" > "${dir}/cwcloudemailplugin.php"
     cp "./ci/logo.png" "${dir}"
     cp "./README.md" "${dir}"
     zip -r "${archive}" "${dir}/"
