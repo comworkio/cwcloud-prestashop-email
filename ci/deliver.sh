@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPO_PATH="${PROJECT_HOME}/cwcloud-wordpress-email"
+REPO_PATH="${PROJECT_HOME}/cwcloud-prestashop-email"
 
 cd "${REPO_PATH}" && git pull origin main || :
 
