@@ -1,0 +1,26 @@
+stages:
+  - deliver
+  - publish
+
+deliver:
+  stage: deliver
+  tags:
+    - imagesbuilder
+  rules: 
+    - if: $CI_COMMIT_MESSAGE =~ /(New release of archives plugin)/
+      when: never
+    - if: $CI_COMMIT_REF_NAME =~ /main/ 
+  script:
+    - chmod +x ./ci/deliver.sh
+    - ./ci/deliver.sh
+
+mirror:
+  stage: publish
+  script:
+    - setsid ./ci/mirror.sh
+  rules: 
+    - if: $CI_COMMIT_MESSAGE =~ /(New release of archives plugin)/
+      when: never
+    - if: $CI_COMMIT_REF_NAME =~ /main/ 
+  tags:
+    - mirror
