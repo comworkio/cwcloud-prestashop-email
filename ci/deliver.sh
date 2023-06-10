@@ -10,11 +10,14 @@ APIS=("cloud-api.comwork.io" "api.cwcloud.tn")
 
 for api in "${APIS[@]}"; do
     ext="$(echo $api|awk -F '.' '{print $NF}')"
-    dir="cwcloud-email-plugin-${ext}"
-    rm -rf "${dir}.zip"
+    archive="cwcloud-email-plugin-${ext}.zip"
+    dir="cwcloudemailplugin"
+    rm -rf "${archive}"
     mkdir -p "${dir}"
     sed "s/CWCLOUD_ENDPOINT_URL/${api}/g" "cwcloud-email-plugin.php.tpl" > "${dir}/cwcloud-email-plugin.php"
-    zip "${dir}.zip" "${dir}/cwcloud-email-plugin.php"
+    cp "./ci/logo.png" "${dir}"
+    cp "./README.md" "${dir}"
+    zip "${archive}" "${dir}"
     rm -rf "${dir}"
 done
 

@@ -3,7 +3,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class CwCloudEmail extends Module {
+class CwCloudEmailPlugin extends Module {
     public function __construct() {
         $this->name = 'cwcloudemail';
         $this->tab = 'emailing';
