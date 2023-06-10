@@ -5,7 +5,7 @@ if (!defined('_PS_VERSION_')) {
 
 class CwCloudEmailPlugin extends Module {
     public function __construct() {
-        $this->name = 'cwcloudemail';
+        $this->name = 'cwcloudemailplugin';
         $this->tab = 'emailing';
         $this->version = '1.0.0';
         $this->author = 'Idriss Neumann';
