@@ -36,6 +36,9 @@ class CwCloudEmailPlugin extends Module {
             $secret_key = strval(Tools::getValue('CWCLOUD_API_SECRET'));
             Configuration::updateValue('CWCLOUD_API_SECRET', $secret_key);
 
+            $from_email = strval(Tools::getValue('CWCLOUD_FROM_EMAIL'));
+            Configuration::updateValue('CWCLOUD_FROM_EMAIL', $from_email);
+
             $bcc_email = strval(Tools::getValue('CWCLOUD_BCC_EMAIL'));
             Configuration::updateValue('CWCLOUD_BCC_EMAIL', $bcc_email);
 
