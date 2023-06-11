@@ -22,7 +22,7 @@ class CwCloudEmailPlugin extends Module {
     }
 
     public function install() {
-        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '');
+        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '') && $this->registerHook('actionEmailSendBefore');
     }
 
     public function uninstall() {
@@ -98,8 +98,7 @@ class CwCloudEmailPlugin extends Module {
         return $helper->generateForm(array($fields_form));
     }
 
-    public function hookActionEmailSendBefore($params)
-    {
+    public function hookActionEmailSendBefore($params) {
         $api_endpoint = 'https://CWCLOUD_ENDPOINT_URL/v1/email';
 
         $from_addr = $params['from'];
