@@ -114,6 +114,10 @@ class CwCloudEmailPlugin extends Module {
 
         $from_addr = null;
         $reply_to = null;
+        $template_vars = array();
+        if (isset($params['templateVars']) && $params['templateVars']) {
+            $template_vars = $params['templateVars'];
+        }
 
         if (isset($params['replyTo']) && $params['replyTo']) {
             $reply_to = $params['replyTo'];
@@ -121,20 +125,35 @@ class CwCloudEmailPlugin extends Module {
 
         if (isset($params['from']) && $params['from']) {
            $from_addr = $params['from'];
-        } else if (isset($params['email']) && $params['email']) {
-            $from_addr = $params['email'];
+        } else if (isset($template_vars['{email}']) && $template_vars['{email}']) {
+            $from_addr = $template_vars['{email}'];
         } else if ($reply_to) {
             $from_addr = $reply_to;
         }
 
         $subject = preg_replace("/\ *\[no_sync\]/", "", $params['subject']);
 
-        $customer = "";
-        if (isset($params['firstname']) && $params['firstname']) {
-           $customer .= $params['firstname'];
+        $firstname = null;
+        if (isset($params['customer_firstname']) && $params['customer_firstname']) {
+           $firstname = $params['customer_firstname'];
+        } else if (isset($template_vars['{firstname}']) && $template_vars['{firstname}']) {
+           $firstname = $template_vars['{firstname}'];
         }
-        if (isset($params['lastname']) && $params['lastname']) {
-            $customer .= " " . $params['lastname'];
+
+        $lastname = null;
+        if (isset($params['customer_lastname']) && $params['customer_lastname']) {
+           $lastname = $params['customer_lastname'];
+        } else if (isset($template_vars['{lastname}']) && $template_vars['{lastname}']) {
+           $lastname = $template_vars['{lastname}'];
+        }
+
+        $customer = null;
+        if ($firstname && $lastname) {
+            $customer = $firstname . " " . $lastname;
+        } else if ($lastname) {
+            $customer = $lastname;
+        } else if ($firstname) {
+            $customer = $firstname;
         }
 
         if ($customer) {
@@ -155,6 +174,17 @@ class CwCloudEmailPlugin extends Module {
             $cc_addr = $params['cc'];
         }
 
+        $message = null;
+        if (isset($params['message']) && $params['message']) {
+            $message = $params['message'];
+        } else if (isset($template_vars['{message}']) && $template_vars['{message}']) {
+            $message = $template_vars['{message}'];
+        } else if (isset($params['content']) && $params['content']) {
+            $message = $params['content'];
+        }
+
+        $message = preg_replace("/\n/", "<br />", $message);
+
         $data = array(
             'from' => $from_addr,
             'to' => $to_addr,
@@ -162,7 +192,7 @@ class CwCloudEmailPlugin extends Module {
             'cc' => $cc_addr,
             'subject' => $subject,
             'replyto' => $reply_to,
-            'content' => $params['message']
+            'content' => $message
         );
 
         $json_data = json_encode($data);
