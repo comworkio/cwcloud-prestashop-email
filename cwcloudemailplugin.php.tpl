@@ -22,11 +22,11 @@ class CwCloudEmailPlugin extends Module {
     }
 
     public function install() {
-        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '') && $this->registerHook('actionEmailSendBefore');
+        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '') && Configuration::updateValue('CWCLOUD_BCC_EMAIL', '') && $this->registerHook('actionEmailSendBefore');
     }
 
     public function uninstall() {
-        return parent::uninstall() && Configuration::deleteByName('CWCLOUD_API_SECRET');
+        return parent::uninstall() && Configuration::deleteByName('CWCLOUD_API_SECRET') && Configuration::deleteByName('CWCLOUD_BCC_EMAIL');
     }
 
     public function getContent() {
@@ -35,6 +35,9 @@ class CwCloudEmailPlugin extends Module {
         if (Tools::isSubmit('submit'.$this->name)) {
             $secret_key = strval(Tools::getValue('CWCLOUD_API_SECRET'));
             Configuration::updateValue('CWCLOUD_API_SECRET', $secret_key);
+
+            $bcc_email = strval(Tools::getValue('CWCLOUD_BCC_EMAIL'));
+            Configuration::updateValue('CWCLOUD_BCC_EMAIL', $bcc_email);
 
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
@@ -56,6 +59,13 @@ class CwCloudEmailPlugin extends Module {
                         'label' => $this->l('Secret Key'),
                         'name' => 'CWCLOUD_API_SECRET',
                         'size' => 50,
+                        'required' => true
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Default bcc email'),
+                        'name' => 'CWCLOUD_BCC_EMAIL',
+                        'size' => 100,
                         'required' => true
                     )
                 ),
@@ -94,6 +104,7 @@ class CwCloudEmailPlugin extends Module {
         );
 
         $helper->fields_value['CWCLOUD_API_SECRET'] = Configuration::get('CWCLOUD_API_SECRET');
+        $helper->fields_value['CWCLOUD_BCC_EMAIL'] = Configuration::get('CWCLOUD_BCC_EMAIL');
 
         return $helper->generateForm(array($fields_form));
     }
@@ -101,15 +112,56 @@ class CwCloudEmailPlugin extends Module {
     public function hookActionEmailSendBefore($params) {
         $api_endpoint = 'https://CWCLOUD_ENDPOINT_URL/v1/email';
 
-        $from_addr = $params['from'];
+        $from_addr = null;
+        $reply_to = null;
+
+        if (isset($params['replyTo']) && $params['replyTo']) {
+            $reply_to = $params['replyTo'];
+        }
+
+        if (isset($params['from']) && $params['from']) {
+           $from_addr = $params['from'];
+        } else if (isset($params['email']) && $params['email']) {
+            $from_addr = $params['email'];
+        } else if ($reply_to) {
+            $from_addr = $reply_to;
+        }
+
+        $subject = preg_replace("/\ *\[no_sync\]/", "", $params['subject']);
+
+        $customer = "";
+        if (isset($params['firstname']) && $params['firstname']) {
+           $customer .= $params['firstname'];
+        }
+        if (isset($params['lastname']) && $params['lastname']) {
+            $customer .= " " . $params['lastname'];
+        }
+
+        if ($customer) {
+            $subject .= " from " . $customer;
+        }
+
         $to_addr = $params['to'];
-        $bcc_addr = $params['bcc'];
+        
+        $bcc_addr = null;
+        if (isset($params['bcc']) && $params['bcc']) {
+            $bcc_addr = $params['bcc'];
+        } else if (Configuration::get('CWCLOUD_BCC_EMAIL')) {
+            $bcc_addr = Configuration::get('CWCLOUD_BCC_EMAIL');
+        }
+
+        $cc_addr = null;
+        if (isset($params['cc']) && $params['cc']) {
+            $cc_addr = $params['cc'];
+        }
 
         $data = array(
             'from' => $from_addr,
             'to' => $to_addr,
             'bcc' => $bcc_addr,
-            'subject' => $params['subject'],
+            'cc' => $cc_addr,
+            'subject' => $subject,
+            'replyto' => $reply_to,
             'content' => $params['message']
         );
 
