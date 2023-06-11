@@ -22,11 +22,11 @@ class CwCloudEmailPlugin extends Module {
     }
 
     public function install() {
-        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '') && Configuration::updateValue('CWCLOUD_BCC_EMAIL', '') && $this->registerHook('actionEmailSendBefore');
+        return parent::install() && Configuration::updateValue('CWCLOUD_API_SECRET', '') && Configuration::updateValue('CWCLOUD_BCC_EMAIL', '') && Configuration::updateValue('CWCLOUD_FROM_EMAIL', '') && $this->registerHook('actionEmailSendBefore');
     }
 
     public function uninstall() {
-        return parent::uninstall() && Configuration::deleteByName('CWCLOUD_API_SECRET') && Configuration::deleteByName('CWCLOUD_BCC_EMAIL');
+        return parent::uninstall() && Configuration::deleteByName('CWCLOUD_API_SECRET') && Configuration::deleteByName('CWCLOUD_BCC_EMAIL') && Configuration::deleteByName('CWCLOUD_FROM_EMAIL');
     }
 
     public function getContent() {
@@ -59,6 +59,13 @@ class CwCloudEmailPlugin extends Module {
                         'label' => $this->l('Secret Key'),
                         'name' => 'CWCLOUD_API_SECRET',
                         'size' => 50,
+                        'required' => true
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Default from email'),
+                        'name' => 'CWCLOUD_FROM_EMAIL',
+                        'size' => 100,
                         'required' => true
                     ),
                     array(
@@ -105,6 +112,7 @@ class CwCloudEmailPlugin extends Module {
 
         $helper->fields_value['CWCLOUD_API_SECRET'] = Configuration::get('CWCLOUD_API_SECRET');
         $helper->fields_value['CWCLOUD_BCC_EMAIL'] = Configuration::get('CWCLOUD_BCC_EMAIL');
+        $helper->fields_value['CWCLOUD_FROM_EMAIL'] = Configuration::get('CWCLOUD_FROM_EMAIL');
 
         return $helper->generateForm(array($fields_form));
     }
@@ -124,7 +132,9 @@ class CwCloudEmailPlugin extends Module {
         }
 
         if (isset($params['from']) && $params['from']) {
-           $from_addr = $params['from'];
+            $from_addr = $params['from'];
+        } else if (Configuration::get('CWCLOUD_FROM_EMAIL')) {
+            $from_addr = Configuration::get('CWCLOUD_FROM_EMAIL');
         } else if (isset($template_vars['{email}']) && $template_vars['{email}']) {
             $from_addr = $template_vars['{email}'];
         } else if ($reply_to) {
@@ -184,6 +194,10 @@ class CwCloudEmailPlugin extends Module {
         }
 
         $message = preg_replace("/\n/", "<br />", $message);
+
+        if ($message == "(hidden)") {
+            return;
+        }
 
         $data = array(
             'from' => $from_addr,
