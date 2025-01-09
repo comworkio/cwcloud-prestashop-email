@@ -6,7 +6,7 @@ cd "${REPO_PATH}" && git pull origin main || :
 
 declare -a APIS
 
-APIS=("cloud-api.comwork.io" "api.cwcloud.tn")
+APIS=("api.cwcloud.tech" "api.cwcloud.tn")
 
 for api in "${APIS[@]}"; do
     ext="$(echo $api|awk -F '.' '{print $NF}')"
